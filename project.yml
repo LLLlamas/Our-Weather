@@ -21,7 +21,11 @@ targets:
     deploymentTarget: "26.0"
     sources:
       - path: Sources
+        excludes:
+          - "Widget/**"
       - path: Resources
+    dependencies:
+      - target: WeatherWidget
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: com.ourweather.app
@@ -55,6 +59,30 @@ targets:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: com.ourweather.app.tests
         GENERATE_INFOPLIST_FILE: YES
+
+  WeatherWidget:
+    type: app-extension
+    platform: iOS
+    deploymentTarget: "26.0"
+    sources:
+      - path: Sources/Widget
+      - path: Sources/Models/Forecast.swift
+      - path: Sources/Services/WeatherClient.swift
+      - path: Sources/Views/TempView.swift
+      - path: Sources/Views/WeatherBackground.swift
+      - path: Sources/Views/Aesthetics.swift
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.ourweather.app.WeatherWidget
+        INFOPLIST_FILE: Sources/Widget/Info.plist
+        MARKETING_VERSION: "0.1.0"
+        CURRENT_PROJECT_VERSION: 1
+        SKIP_INSTALL: YES
+      configs:
+        Release:
+          CODE_SIGN_STYLE: Manual
+          CODE_SIGN_IDENTITY: Apple Distribution
+          PROVISIONING_PROFILE_SPECIFIER: match AppStore com.ourweather.app.WeatherWidget
 
 schemes:
   OurWeather:

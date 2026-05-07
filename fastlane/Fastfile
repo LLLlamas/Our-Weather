@@ -30,7 +30,8 @@ platform :ios do
       xcargs: "CURRENT_PROJECT_VERSION=#{build_number}",
       export_options: {
         provisioningProfiles: {
-          "com.ourweather.app" => "match AppStore com.ourweather.app"
+          "com.ourweather.app" => "match AppStore com.ourweather.app",
+          "com.ourweather.app.WeatherWidget" => "match AppStore com.ourweather.app.WeatherWidget"
         }
       }
     )

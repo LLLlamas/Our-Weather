@@ -35,7 +35,15 @@ Our-Weather/
 │   │   ├── DailyList.swift        # 10-day forecast: range bars, precip %, today's dot     [shipped]
 │   │   ├── ConditionCards.swift   # 2-col grid: Feels Like, UV, Humidity, Wind, Sunrise    [shipped]
 │   │   ├── WeatherBackground.swift # condition + isDay → gradient colors                   [shipped]
-│   │   └── LocationsSheet.swift   # search (Open-Meteo geocoding) + saved-list management  [shipped]
+│   │   ├── LocationsSheet.swift   # search (Open-Meteo geocoding) + saved-list management  [shipped]
+│   │   └── Aesthetics.swift       # `.legibleText()` thin-outline shadow modifier          [shipped]
+│   ├── Widget/
+│   │   ├── WeatherWidgetBundle.swift # @main WidgetBundle                                  [shipped]
+│   │   ├── WeatherWidget.swift    # StaticConfiguration + WeatherBackground container       [shipped]
+│   │   ├── WeatherWidgetView.swift # small/medium + accessory sizes                        [shipped]
+│   │   ├── WeatherProvider.swift  # TimelineProvider, 30-min refresh, cached CLLocation    [shipped]
+│   │   ├── WeatherEntry.swift     # TimelineEntry data shape                               [shipped]
+│   │   └── Info.plist             # NSExtension config for widget extension                [shipped]
 │   ├── Services/
 │   │   ├── WeatherClient.swift    # Open-Meteo forecast client                             [shipped]
 │   │   ├── LocationService.swift  # CoreLocation wrapper + reverse geocoding               [shipped]
@@ -92,6 +100,7 @@ enum Temperature {
 - **Domain types** (`Forecast`, `CurrentConditions`, `HourlyEntry`, `DailyEntry`, `WeatherCondition`) live in `Sources/Models/Forecast.swift`. They are NOT `Codable` — they're the clean shape views consume. All `Sendable`.
 - **WMO weather codes** are mapped to a small `WeatherCondition` enum in `Forecast.swift`. Add codes if Open-Meteo returns one we miss.
 - **Open-Meteo uses TWO date formats in one response.** `current.time`, `hourly.time`, `daily.sunrise`, `daily.sunset` are datetime strings (`"2026-05-07T16:00"`). `daily.time` is date-only (`"2026-05-07"`). Parsing all of them with one `"yyyy-MM-dd'T'HH:mm"` formatter silently fails on `daily.time` and `compactMap` drops every daily entry, producing an empty 10-day forecast. `WeatherClient.swift` keeps two formatters (`openMeteoDateTime` and `openMeteoDate`) for this reason — don't consolidate.
+- **All on-gradient text uses `.legibleText()`.** White text on the dynamic blue/indigo/etc. background washes out without a tiny outline. The modifier in `Sources/Views/Aesthetics.swift` adds a single soft black shadow (radius 1.0, no offset, 30% opacity) — reads as a thin halo rather than a drop shadow. Apply at the `Text` / `Label` level, not at container level (otherwise the card's background gets shadowed too). `TempView` applies it internally so every temperature display is automatically outlined.
 
 ## Data source: Open-Meteo
 
@@ -255,10 +264,12 @@ What's working today:
 - **Daily list** — exactly 10 days with iOS-Weather-style range bars (positioned along the week's min/max axis, color-graded by temperature), precipitation chance ≥30%, and a white dot on today's row showing the current temp
 - **Condition cards** — 2-column grid of Feels Like, UV Index, Humidity, Wind, Sunrise/Sunset
 - **Dynamic background** — `WeatherBackground` picks gradient colors based on `WeatherCondition` + `isDay`
+- **Lock-screen + home-screen widget** (`WeatherWidget` extension) — small/medium/accessoryRectangular/accessoryCircular/accessoryInline. Refreshes every 30 min via `TimelineProvider`. Uses the system's cached `CLLocationManager.location` (kept fresh by the main app's foreground use); falls back to Cupertino if no cache. Same `WeatherBackground` and `TempView` as the main app for visual consistency.
+- **Thin text outline** for legibility — `.legibleText()` modifier (in `Aesthetics.swift`) wraps every white-on-gradient text with a 30%-opacity black halo. Applied automatically by `TempView`; applied explicitly in headers, hourly time labels, daily day names, condition card labels, and all widget views.
 
 Remaining pieces:
-1. **Lock-screen widget + Home Screen widget** — WidgetExtension target, `TimelineProvider` fetching forecast on a schedule, glanceable current temp in dual F/C across small/medium/large families
-2. **Live Activity / Dynamic Island** — `ActivityKit` framework, requires `NSSupportsLiveActivities = YES`; live current temp pinned to the lock screen and Dynamic Island
+1. **Live Activity / Dynamic Island** — `ActivityKit` framework, `NSSupportsLiveActivities = YES`, lives in the same `WeatherWidget` extension; live current temp pinned to lock screen and Dynamic Island
+2. **App Group for widget data** — currently the widget reads `CLLocationManager.location` cached by the system, which works but isn't synced to the user's selected saved location in the app. App Group + shared UserDefaults would let the widget show whichever location the user picked in `LocationStore`. Adds portal capability work + match cert regeneration.
 3. *(stretch)* Response cache (~10 min) so re-opening the app doesn't refetch immediately
 4. *(stretch)* WeatherKit migration (better data; needs entitlement enabled on the App ID)
 5. *(stretch)* Replace placeholder app icon with real artwork

@@ -92,9 +92,11 @@ private struct Card<Value: View>: View {
             Label(title, systemImage: systemImage)
                 .font(.caption)
                 .foregroundStyle(.white.opacity(0.7))
+                .legibleText()
 
             value()
                 .foregroundStyle(.white)
+                .legibleText()
 
             Spacer(minLength: 0)
 
@@ -102,6 +104,7 @@ private struct Card<Value: View>: View {
                 Text(subtitle)
                     .font(.caption2)
                     .foregroundStyle(.white.opacity(0.7))
+                    .legibleText()
             }
         }
         .frame(maxWidth: .infinity, alignment: .leading)

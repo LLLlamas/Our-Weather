@@ -1,5 +1,5 @@
 git_url(ENV["MATCH_GIT_URL"])
 storage_mode("git")
 type("appstore")
-app_identifier(["com.ourweather.app"])
+app_identifier(["com.ourweather.app", "com.ourweather.app.WeatherWidget"])
 team_id("GYFN949Q5E")

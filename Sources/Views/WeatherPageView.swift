@@ -67,18 +67,20 @@ struct WeatherPageView: View {
                 }
                 Text(location.name)
                     .font(.title2)
+                    .legibleText()
             }
 
             TempView(celsius: forecast.current.temperatureC)
-                .font(.system(size: 76, weight: .thin))
+                .font(.system(size: 80, weight: .thin, design: .rounded))
 
             Text(forecast.current.condition.displayName)
                 .font(.title3)
+                .legibleText()
 
             HStack(spacing: 6) {
-                Text("H:")
+                Text("H:").legibleText()
                 TempView(celsius: highToday(forecast), compact: true)
-                Text("L:")
+                Text("L:").legibleText()
                 TempView(celsius: lowToday(forecast), compact: true)
             }
             .font(.callout)

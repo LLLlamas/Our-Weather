@@ -22,6 +22,7 @@ struct DailyList: View {
             Label("10-Day Forecast", systemImage: "calendar")
                 .font(.caption)
                 .foregroundStyle(.white.opacity(0.7))
+                .legibleText()
 
             VStack(spacing: 0) {
                 ForEach(Array(visibleDays.enumerated()), id: \.element.id) { index, day in
@@ -55,6 +56,7 @@ private struct DailyRow: View {
             Text(isToday ? "Today" : day.date.formatted(.dateTime.weekday(.abbreviated)))
                 .font(.body)
                 .frame(width: 56, alignment: .leading)
+                .legibleText()
 
             VStack(spacing: 0) {
                 Image(systemName: day.condition.sfSymbol)
@@ -64,6 +66,7 @@ private struct DailyRow: View {
                     Text("\(chance)%")
                         .font(.system(size: 11, weight: .medium))
                         .foregroundStyle(Color(red: 0.55, green: 0.85, blue: 1.0))
+                        .legibleText()
                 }
             }
             .frame(width: 32)

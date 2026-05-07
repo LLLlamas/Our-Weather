@@ -13,6 +13,7 @@ struct HourlyStrip: View {
             Label("Hourly Forecast", systemImage: "clock")
                 .font(.caption)
                 .foregroundStyle(.white.opacity(0.7))
+                .legibleText()
 
             ScrollView(.horizontal, showsIndicators: false) {
                 HStack(spacing: 18) {
@@ -59,6 +60,7 @@ private struct HourCell: View {
                         .padding(.vertical, 1)
                         .background(.white.opacity(0.20))
                         .clipShape(.capsule)
+                        .legibleText()
                 } else {
                     Color.clear
                 }
@@ -67,6 +69,7 @@ private struct HourCell: View {
 
             Text(isNow ? "Now" : entry.time.formatted(.dateTime.hour()))
                 .font(.caption)
+                .legibleText()
 
             Image(systemName: entry.condition.sfSymbol)
                 .font(.title3)

@@ -21,11 +21,14 @@ struct TempView: View {
     var body: some View {
         let f = Temperature.fahrenheit(fromCelsius: celsius)
         let c = Temperature.celsius(rounded: celsius)
-        if compact {
-            Text("\(f)° / \(c)°")
-        } else {
-            Text("\(f)°F / \(c)°C")
+        Group {
+            if compact {
+                Text("\(f)° / \(c)°")
+            } else {
+                Text("\(f)°F / \(c)°C")
+            }
         }
+        .legibleText()
     }
 }
 
