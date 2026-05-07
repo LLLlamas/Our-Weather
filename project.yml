@@ -1,0 +1,64 @@
+name: OurWeather
+
+options:
+  bundleIdPrefix: com.ourweather
+  deploymentTarget:
+    iOS: "26.0"
+  createIntermediateGroups: true
+  generateEmptyDirectories: true
+
+settings:
+  base:
+    SWIFT_VERSION: "6.0"
+    DEVELOPMENT_TEAM: ""
+    CODE_SIGN_STYLE: Automatic
+    ENABLE_USER_SCRIPT_SANDBOXING: YES
+
+targets:
+  OurWeather:
+    type: application
+    platform: iOS
+    deploymentTarget: "26.0"
+    sources:
+      - path: Sources
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.ourweather.app
+        PRODUCT_NAME: Our-Weather
+        MARKETING_VERSION: "0.1.0"
+        CURRENT_PROJECT_VERSION: 1
+        GENERATE_INFOPLIST_FILE: YES
+        INFOPLIST_KEY_CFBundleDisplayName: Our-Weather
+        INFOPLIST_KEY_UILaunchScreen_Generation: YES
+        INFOPLIST_KEY_UIApplicationSceneManifest_Generation: YES
+        INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone: "UIInterfaceOrientationPortrait"
+        INFOPLIST_KEY_NSLocationWhenInUseUsageDescription: "Your location is used to show local weather conditions."
+        TARGETED_DEVICE_FAMILY: "1,2"
+        SUPPORTS_MACCATALYST: NO
+
+  OurWeatherTests:
+    type: bundle.unit-test
+    platform: iOS
+    deploymentTarget: "26.0"
+    sources:
+      - path: Tests
+    dependencies:
+      - target: OurWeather
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.ourweather.app.tests
+        GENERATE_INFOPLIST_FILE: YES
+
+schemes:
+  OurWeather:
+    build:
+      targets:
+        OurWeather: all
+        OurWeatherTests: [test]
+    test:
+      targets:
+        - OurWeatherTests
+    run:
+      config: Debug
+    archive:
+      config: Release

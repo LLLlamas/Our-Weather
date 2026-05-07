@@ -1,0 +1,25 @@
+# Xcode-generated artifacts (we generate the .xcodeproj via XcodeGen in CI)
+*.xcodeproj/
+*.xcworkspace/
+xcuserdata/
+build/
+DerivedData/
+*.swiftpm
+.build/
+.swiftpm/
+*.ipa
+*.dSYM.zip
+*.xcarchive
+
+# fastlane
+fastlane/report.xml
+fastlane/Preview.html
+fastlane/screenshots/**/*.png
+fastlane/test_output
+
+# macOS
+.DS_Store
+
+# IDEs
+.vscode/
+.idea/
