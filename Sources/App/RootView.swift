@@ -2,20 +2,17 @@ import SwiftUI
 
 struct RootView: View {
     private let client: any WeatherClient
-    private let coordinate: Coordinate
-    private let locationName: String
+    @State private var locationService = LocationService()
 
+    @State private var locationName: String = ""
     @State private var forecast: Forecast?
     @State private var loadError: String?
 
-    init(
-        client: any WeatherClient = OpenMeteoClient(),
-        coordinate: Coordinate = Coordinate(latitude: 37.32, longitude: -122.03),
-        locationName: String = "Cupertino"
-    ) {
+    private static let fallbackCoordinate = Coordinate(latitude: 37.32, longitude: -122.03)
+    private static let fallbackName = "Cupertino"
+
+    init(client: any WeatherClient = OpenMeteoClient()) {
         self.client = client
-        self.coordinate = coordinate
-        self.locationName = locationName
     }
 
     var body: some View {
@@ -23,12 +20,8 @@ struct RootView: View {
             background
             content
         }
-        .task {
-            await load()
-        }
-        .refreshable {
-            await load()
-        }
+        .task { await load() }
+        .refreshable { await load() }
     }
 
     @ViewBuilder
@@ -48,29 +41,43 @@ struct RootView: View {
             }
             .foregroundStyle(.white)
         } else {
-            ProgressView()
-                .tint(.white)
+            ProgressView().tint(.white)
         }
     }
 
     private func loaded(_ forecast: Forecast) -> some View {
-        VStack(spacing: 8) {
+        ScrollView {
+            VStack(spacing: 24) {
+                header(forecast)
+                HourlyStrip(hours: forecast.hourly)
+                DailyList(days: forecast.daily)
+            }
+            .padding(.horizontal)
+            .padding(.top, 60)
+            .padding(.bottom, 40)
+        }
+        .scrollIndicators(.hidden)
+    }
+
+    private func header(_ forecast: Forecast) -> some View {
+        VStack(spacing: 4) {
             Text(locationName)
                 .font(.title2)
 
             TempView(celsius: forecast.current.temperatureC)
-                .font(.system(size: 84, weight: .thin))
+                .font(.system(size: 76, weight: .thin))
 
             Text(forecast.current.condition.displayName)
                 .font(.title3)
 
             HStack(spacing: 6) {
                 Text("H:")
-                TempView(celsius: highToday(forecast))
+                TempView(celsius: highToday(forecast), compact: true)
                 Text("L:")
-                TempView(celsius: lowToday(forecast))
+                TempView(celsius: lowToday(forecast), compact: true)
             }
             .font(.callout)
+            .padding(.top, 4)
         }
         .foregroundStyle(.white)
     }
@@ -93,6 +100,15 @@ struct RootView: View {
     }
 
     private func load() async {
+        let coordinate: Coordinate
+        if let real = try? await locationService.currentCoordinate() {
+            coordinate = real
+            locationName = await locationService.placeName(for: real) ?? "Current Location"
+        } else {
+            coordinate = Self.fallbackCoordinate
+            locationName = Self.fallbackName
+        }
+
         do {
             forecast = try await client.forecast(for: coordinate)
             loadError = nil
