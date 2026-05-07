@@ -41,12 +41,14 @@ Our-Weather/
 │       └── Forecast.swift         # domain types (NOT Codable) consumed by views           [shipped]
 ├── Tests/
 │   └── TemperatureTests.swift     # swift-testing tests for Temperature helpers            [shipped]
-├── fastlane/                                                                               [planned]
-│   ├── Fastfile
-│   └── Appfile
+├── Gemfile                                                                                [shipped]
+├── fastlane/
+│   ├── Fastfile                   # `beta` lane (build+sign+upload), `sync_certs` lane    [shipped]
+│   ├── Appfile                    # bundle ID + team ID                                   [shipped]
+│   └── Matchfile                  # match storage + cert type config                      [shipped]
 └── .github/workflows/
-    ├── build.yml                  # PR + main: xcodegen, build, test                       [shipped]
-    └── release.yml                # TestFlight upload on tag push                          [planned]
+    ├── build.yml                  # PR + main: xcodegen, build, test                      [shipped]
+    └── release.yml                # TestFlight upload on tag push                         [shipped]
 ```
 
 No nested feature folders, no Coordinators, no VIPER, no Combine wrappers around everything. Standard SwiftUI + `@Observable` for state. Add structure when something concrete demands it, not before.
@@ -117,13 +119,19 @@ Runs on every push and PR. Steps:
 
 No signing in this workflow — it only verifies the project compiles and tests pass.
 
-### `.github/workflows/release.yml` *(planned)*
-Will run on tag push (`v*.*.*`). Will:
-1. Same as build, then
-2. `fastlane beta` — archives, signs, uploads to TestFlight using the App Store Connect API key from secrets
+### `.github/workflows/release.yml` *(shipped)*
+Runs on tag push (`v*.*.*`) or manual dispatch. Steps:
+1. Checkout
+2. Setup Ruby 3.3 with bundler cache (installs `fastlane` from `Gemfile`)
+3. Install XcodeGen via Homebrew
+4. `xcodegen generate`
+5. `bundle exec fastlane beta`:
+   - `setup_ci` — creates a temporary keychain so signing doesn't fight a (nonexistent) login keychain
+   - `match(type: "appstore", readonly: false)` — first run generates the distribution cert + provisioning profile via the App Store Connect API key, encrypts with `MATCH_PASSWORD`, and pushes to the match repo. Subsequent runs decrypt and reuse.
+   - `build_app` — Release archive, app-store export, build number from `GITHUB_RUN_NUMBER`
+   - `upload_to_testflight` — pushes to App Store Connect; available in TestFlight on your iPhone within ~5–15 min after Apple processes the build
 
-GitHub Actions secrets (full list in **Apple Developer setup** below):
-- `APPLE_TEAM_ID`, `APP_STORE_CONNECT_API_KEY_ID`, `APP_STORE_CONNECT_API_ISSUER_ID`, `APP_STORE_CONNECT_API_KEY_CONTENT`, `MATCH_PASSWORD`, `MATCH_GIT_URL`
+The build number passed via `xcargs: CURRENT_PROJECT_VERSION=…` rather than mutating the project file (XcodeGen would clobber any in-place change on the next regeneration).
 
 ## Coding conventions
 
@@ -148,8 +156,27 @@ Before the first TestFlight upload works, the following must be in place. Most o
 3. **Find Team ID** — Membership page; populate `DEVELOPMENT_TEAM` in `project.yml`. *(currently `GYFN949Q5E`)*
 4. **Create App Store Connect API Key** — Users and Access → Integrations → App Store Connect API → +; role **App Manager**. Download the `.p8` once. Note the **Key ID** and **Issuer ID**.
 
-### Code signing — `fastlane match` *(planned)*
-Standard solution for "no Mac, CI signs builds." Stores distribution cert + provisioning profile encrypted in a private git repo; CI pulls them on every build. Setup happens when `release.yml` is wired up; no extra portal action is needed for `match` itself — it provisions certs via the API key from step 4.
+### Code signing — `fastlane match` *(shipped)*
+Stores the distribution certificate + provisioning profile encrypted in a private git repo; CI pulls them on every build. The first run of `release.yml` generates the cert via the App Store Connect API key, encrypts with `MATCH_PASSWORD`, and pushes to the match repo. No extra Apple Developer portal action needed — match provisions certs through the API key.
+
+**One-time bootstrap (do these once, in order, before pushing the first tag):**
+1. **Create a private GitHub repo for the certs** — name it whatever you want (e.g. `Our-Weather-certs`). It can stay empty; match will populate it on first run.
+2. **Generate a fine-grained personal access token (PAT)** — GitHub → Settings → Developer settings → Personal access tokens → Fine-grained tokens. Scope: only the certs repo. Permissions: **Contents: Read and write**.
+3. **Encode the PAT for `MATCH_GIT_BASIC_AUTHORIZATION`** — fastlane expects basic auth in the form `base64("x-access-token:PAT")`. PowerShell:
+   ```powershell
+   [Convert]::ToBase64String([Text.Encoding]::UTF8.GetBytes("x-access-token:YOUR_PAT_HERE")) | Set-Clipboard
+   ```
+4. **Add three new GitHub Actions secrets** (Repo → Settings → Secrets and variables → Actions):
+   - `MATCH_GIT_URL` — `https://github.com/SeptemberFinesse/Our-Weather-certs.git`
+   - `MATCH_GIT_BASIC_AUTHORIZATION` — paste the base64 from step 3
+   - `MATCH_PASSWORD` — pick a strong passphrase, save it in your password manager. Lose this and the certs in the match repo become unrecoverable (you'd revoke the cert in the dev portal and regenerate from scratch).
+5. **Confirm App Store Connect app record exists** — `My Apps → +` with bundle ID `com.ourweather.app`. Without it, `upload_to_testflight` fails.
+6. **Push a tag**:
+   ```
+   git tag v0.1.0
+   git push --tags
+   ```
+   This triggers `release.yml`. First run takes ~10–15 min (cert generation + initial archive). Subsequent runs are faster (~5–8 min).
 
 ### GitHub Actions secrets
 
@@ -159,8 +186,9 @@ Standard solution for "no Mac, CI signs builds." Stores distribution cert + prov
 | `APP_STORE_CONNECT_API_KEY_ID` | API key page | set by user |
 | `APP_STORE_CONNECT_API_ISSUER_ID` | API key page | set by user |
 | `APP_STORE_CONNECT_API_KEY_CONTENT` | The `.p8` file, base64-encoded (PowerShell: `[Convert]::ToBase64String([IO.File]::ReadAllBytes("AuthKey_XXX.p8")) \| Set-Clipboard`) | set by user |
-| `MATCH_PASSWORD` | Passphrase chosen at match init time | pending (needed for release.yml) |
-| `MATCH_GIT_URL` | Private cert repo URL (created during match setup) | pending (needed for release.yml) |
+| `MATCH_PASSWORD` | Passphrase you choose; encrypts certs in the match repo | pending |
+| `MATCH_GIT_URL` | Private cert repo URL (e.g. `https://github.com/SeptemberFinesse/Our-Weather-certs.git`) | pending |
+| `MATCH_GIT_BASIC_AUTHORIZATION` | Base64 of `x-access-token:PAT` for HTTPS auth to the match repo | pending |
 
 ### What NOT to do yet
 - Don't enable WeatherKit — we're on Open-Meteo. Defer until/unless we migrate.
@@ -217,6 +245,8 @@ What's working today:
 - **Condition cards** — 2-column grid of Feels Like, UV Index, Humidity, Wind, Sunrise/Sunset
 - **Dynamic background** — `WeatherBackground` picks gradient colors based on `WeatherCondition` + `isDay` (clear/partly cloudy have day vs night variants; rain/snow/storm are same day or night)
 
-Remaining pieces:
-1. **`fastlane/` + `release.yml`** — `match` setup, TestFlight upload pipeline, first build to your iPhone
-2. *(stretch)* Reverse-geocoding cache, response cache (~10 min), Live Activity / lock-screen widget, WeatherKit migration
+Remaining pieces (after first TestFlight build lands):
+1. *(stretch)* Response cache (~10 min) so screen-on doesn't refetch every time
+2. *(stretch)* Live Activity / lock-screen widget showing current temp in dual F/C
+3. *(stretch)* WeatherKit migration (better data; needs entitlement enabled on the App ID)
+4. *(stretch)* Search / saved-locations list so you can check weather for places other than current location

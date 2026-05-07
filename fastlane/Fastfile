@@ -1,0 +1,57 @@
+default_platform(:ios)
+
+platform :ios do
+  before_all do
+    setup_ci(force: true) if ENV["CI"]
+  end
+
+  desc "Build a signed Release archive and upload to TestFlight"
+  lane :beta do
+    api_key = app_store_connect_api_key(
+      key_id: ENV["APP_STORE_CONNECT_API_KEY_ID"],
+      issuer_id: ENV["APP_STORE_CONNECT_API_ISSUER_ID"],
+      key_content: ENV["APP_STORE_CONNECT_API_KEY_CONTENT"],
+      is_key_content_base64: true,
+      in_house: false
+    )
+
+    match(
+      type: "appstore",
+      readonly: false,
+      api_key: api_key
+    )
+
+    build_number = ENV["GITHUB_RUN_NUMBER"] || Time.now.strftime("%Y%m%d%H%M").to_i
+
+    build_app(
+      project: "OurWeather.xcodeproj",
+      scheme: "OurWeather",
+      configuration: "Release",
+      export_method: "app-store",
+      xcargs: "CURRENT_PROJECT_VERSION=#{build_number}",
+      export_options: {
+        provisioningProfiles: {
+          "com.ourweather.app" => "match AppStore com.ourweather.app"
+        }
+      }
+    )
+
+    upload_to_testflight(
+      api_key: api_key,
+      skip_waiting_for_build_processing: true,
+      skip_submission: true
+    )
+  end
+
+  desc "Sync code-signing certs (run if match repo gets corrupted)"
+  lane :sync_certs do
+    api_key = app_store_connect_api_key(
+      key_id: ENV["APP_STORE_CONNECT_API_KEY_ID"],
+      issuer_id: ENV["APP_STORE_CONNECT_API_ISSUER_ID"],
+      key_content: ENV["APP_STORE_CONNECT_API_KEY_CONTENT"],
+      is_key_content_base64: true
+    )
+
+    match(type: "appstore", readonly: false, api_key: api_key, force: true)
+  end
+end
