@@ -145,6 +145,7 @@ The build number passed via `xcargs: CURRENT_PROJECT_VERSION=…` rather than mu
 - **Prefer `struct` over `class`.** Reach for class only when reference semantics are required.
 - **Force-unwraps are bugs.** Use `guard let` / `if let` / `??`.
 - **Never set `PRODUCT_NAME`** in `project.yml` to a value that differs from the target name — Xcode derives `TEST_HOST` from the target name, so a custom `PRODUCT_NAME` breaks unit-test linkage. Use `INFOPLIST_KEY_CFBundleDisplayName` for the home-screen label instead.
+- **Release config uses Manual signing with the match profile name.** `Automatic` signing won't find match-installed profiles and `xcodebuild archive` fails with "No profiles for ... were found." `project.yml` sets `CODE_SIGN_STYLE: Manual`, `CODE_SIGN_IDENTITY: Apple Distribution`, and `PROVISIONING_PROFILE_SPECIFIER: match AppStore com.ourweather.app` for the Release config only. Debug stays Automatic (irrelevant since we never build Debug for distribution).
 
 ## Apple Developer setup (one-time)
 

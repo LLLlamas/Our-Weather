@@ -34,6 +34,11 @@ targets:
         INFOPLIST_KEY_NSLocationWhenInUseUsageDescription: "Your location is used to show local weather conditions."
         TARGETED_DEVICE_FAMILY: "1,2"
         SUPPORTS_MACCATALYST: NO
+      configs:
+        Release:
+          CODE_SIGN_STYLE: Manual
+          CODE_SIGN_IDENTITY: Apple Distribution
+          PROVISIONING_PROFILE_SPECIFIER: match AppStore com.ourweather.app
 
   OurWeatherTests:
     type: bundle.unit-test
