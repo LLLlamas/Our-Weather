@@ -180,7 +180,7 @@ Stores the distribution certificate + provisioning profile encrypted in a privat
 | `APPLE_TEAM_ID` | Membership page | set by user |
 | `APP_STORE_CONNECT_API_KEY_ID` | API key page | set by user |
 | `APP_STORE_CONNECT_API_ISSUER_ID` | API key page | set by user |
-| `APP_STORE_CONNECT_API_KEY_CONTENT` | The `.p8` file, base64-encoded (PowerShell: `[Convert]::ToBase64String([IO.File]::ReadAllBytes("AuthKey_XXX.p8")) \| Set-Clipboard`) | set by user |
+| `APP_STORE_CONNECT_API_KEY_CONTENT` | Raw contents of `AuthKey_XXX.p8` — paste the whole file including `-----BEGIN PRIVATE KEY-----` and `-----END PRIVATE KEY-----` headers and all newlines. Do NOT base64-encode. | set by user |
 | `MATCH_PASSWORD` | Passphrase you choose; encrypts certs in the match repo | set by user |
 | `MATCH_GIT_URL` | Private cert repo URL with PAT embedded: `https://x-access-token:PAT@github.com/LLLlamas/Our-Weather-certs.git` | set by user |
 
