@@ -21,6 +21,7 @@ targets:
     deploymentTarget: "26.0"
     sources:
       - path: Sources
+      - path: Resources
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: com.ourweather.app

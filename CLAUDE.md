@@ -41,6 +41,10 @@ Our-Weather/
 │       └── Forecast.swift         # domain types (NOT Codable) consumed by views           [shipped]
 ├── Tests/
 │   └── TemperatureTests.swift     # swift-testing tests for Temperature helpers            [shipped]
+├── Resources/
+│   └── Assets.xcassets/
+│       └── AppIcon.appiconset/    # single 1024x1024 universal icon (Xcode generates the   [shipped]
+│                                  # 120/152/etc. variants from this at build time)
 ├── Gemfile                                                                                [shipped]
 ├── fastlane/
 │   ├── Fastfile                   # `beta` lane (build+sign+upload), `sync_certs` lane    [shipped]
@@ -146,6 +150,7 @@ The build number passed via `xcargs: CURRENT_PROJECT_VERSION=…` rather than mu
 - **Force-unwraps are bugs.** Use `guard let` / `if let` / `??`.
 - **Never set `PRODUCT_NAME`** in `project.yml` to a value that differs from the target name — Xcode derives `TEST_HOST` from the target name, so a custom `PRODUCT_NAME` breaks unit-test linkage. Use `INFOPLIST_KEY_CFBundleDisplayName` for the home-screen label instead.
 - **Release config uses Manual signing with the match profile name.** `Automatic` signing won't find match-installed profiles and `xcodebuild archive` fails with "No profiles for ... were found." `project.yml` sets `CODE_SIGN_STYLE: Manual`, `CODE_SIGN_IDENTITY: Apple Distribution`, and `PROVISIONING_PROFILE_SPECIFIER: match AppStore com.ourweather.app` for the Release config only. Debug stays Automatic (irrelevant since we never build Debug for distribution).
+- **App icon is one 1024x1024 PNG.** TestFlight rejects any IPA without iPhone 120x120 + iPad 152x152 icons. Xcode 14+'s "All-Sized Image" feature generates every required device variant at build time from a single 1024x1024 universal icon, so `AppIcon.appiconset/Contents.json` only references one image (`Icon-1024.png`). To replace the icon, just overwrite that PNG; do not add per-size entries unless you have a reason.
 
 ## Apple Developer setup (one-time)
 
