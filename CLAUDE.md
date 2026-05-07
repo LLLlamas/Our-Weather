@@ -32,7 +32,8 @@ Our-Weather/
 │   │   ├── TempView.swift         # Dual F/C renderer + Temperature enum (pure helpers)    [shipped]
 │   │   ├── HourlyStrip.swift      # horizontal hourly forecast (next 24h)                  [shipped]
 │   │   ├── DailyList.swift        # 10-day forecast list                                   [shipped]
-│   │   └── ConditionCard.swift    # UV, humidity, wind, pressure                           [planned]
+│   │   ├── ConditionCards.swift   # 2-col grid: Feels Like, UV, Humidity, Wind, Sunrise    [shipped]
+│   │   └── WeatherBackground.swift # condition + isDay → gradient colors                   [shipped]
 │   ├── Services/
 │   │   ├── WeatherClient.swift    # Open-Meteo client; private wire-format types inside    [shipped]
 │   │   └── LocationService.swift  # CoreLocation wrapper + reverse geocoding               [shipped]
@@ -210,11 +211,12 @@ If a change makes a section of CLAUDE.md inaccurate, fix the section. If the sec
 What's working today:
 - Project compiles + tests pass via `build.yml` on GitHub Actions
 - App fetches real Open-Meteo data and renders current temp + condition + today's H/L, all in dual F/C via `TempView`
-- **Device location** via `LocationService` (CoreLocation `liveUpdates` + `CLGeocoder` reverse geocoding for the city name); falls back to Cupertino if permission is denied or unavailable
-- **Hourly strip** — horizontal scroll of the next 24 hours with weather icon + compact dual-unit temp
+- **Device location** via `LocationService` (CoreLocation `liveUpdates` + `CLGeocoder` reverse geocoding); falls back to Cupertino if permission is denied/unavailable
+- **Hourly strip** — horizontal scroll of next 24h with weather icon + compact dual-unit temp
 - **Daily list** — 10-day forecast with day name, condition icon, dual-unit low/high
+- **Condition cards** — 2-column grid of Feels Like, UV Index, Humidity, Wind, Sunrise/Sunset
+- **Dynamic background** — `WeatherBackground` picks gradient colors based on `WeatherCondition` + `isDay` (clear/partly cloudy have day vs night variants; rain/snow/storm are same day or night)
 
 Remaining pieces:
-1. **`Sources/Views/ConditionCard.swift`** — UV, humidity, wind grid (data already in `forecast.current`)
-2. **Dynamic gradient backgrounds** based on `WeatherCondition` + `isDay` (currently fixed blue→indigo)
-3. **`fastlane/` + `release.yml`** — `match` setup, TestFlight upload pipeline, first build to your iPhone
+1. **`fastlane/` + `release.yml`** — `match` setup, TestFlight upload pipeline, first build to your iPhone
+2. *(stretch)* Reverse-geocoding cache, response cache (~10 min), Live Activity / lock-screen widget, WeatherKit migration

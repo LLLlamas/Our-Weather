@@ -51,6 +51,7 @@ struct RootView: View {
                 header(forecast)
                 HourlyStrip(hours: forecast.hourly)
                 DailyList(days: forecast.daily)
+                ConditionCards(current: forecast.current, today: forecast.daily.first)
             }
             .padding(.horizontal)
             .padding(.top, 60)
@@ -83,12 +84,10 @@ struct RootView: View {
     }
 
     private var background: some View {
-        LinearGradient(
-            colors: [.blue, .indigo],
-            startPoint: .top,
-            endPoint: .bottom
+        WeatherBackground(
+            condition: forecast?.current.condition ?? .clear,
+            isDay: forecast?.current.isDay ?? true
         )
-        .ignoresSafeArea()
     }
 
     private func highToday(_ forecast: Forecast) -> Double {
