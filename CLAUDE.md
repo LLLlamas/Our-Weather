@@ -167,7 +167,7 @@ Stores the distribution certificate + provisioning profile encrypted in a privat
    [Convert]::ToBase64String([Text.Encoding]::UTF8.GetBytes("x-access-token:YOUR_PAT_HERE")) | Set-Clipboard
    ```
 4. **Add three new GitHub Actions secrets** (Repo → Settings → Secrets and variables → Actions):
-   - `MATCH_GIT_URL` — `https://github.com/SeptemberFinesse/Our-Weather-certs.git`
+   - `MATCH_GIT_URL` — `https://github.com/LLLlamas/Our-Weather-certs.git`
    - `MATCH_GIT_BASIC_AUTHORIZATION` — paste the base64 from step 3
    - `MATCH_PASSWORD` — pick a strong passphrase, save it in your password manager. Lose this and the certs in the match repo become unrecoverable (you'd revoke the cert in the dev portal and regenerate from scratch).
 5. **Confirm App Store Connect app record exists** — `My Apps → +` with bundle ID `com.ourweather.app`. Without it, `upload_to_testflight` fails.
@@ -187,7 +187,7 @@ Stores the distribution certificate + provisioning profile encrypted in a privat
 | `APP_STORE_CONNECT_API_ISSUER_ID` | API key page | set by user |
 | `APP_STORE_CONNECT_API_KEY_CONTENT` | The `.p8` file, base64-encoded (PowerShell: `[Convert]::ToBase64String([IO.File]::ReadAllBytes("AuthKey_XXX.p8")) \| Set-Clipboard`) | set by user |
 | `MATCH_PASSWORD` | Passphrase you choose; encrypts certs in the match repo | pending |
-| `MATCH_GIT_URL` | Private cert repo URL (e.g. `https://github.com/SeptemberFinesse/Our-Weather-certs.git`) | pending |
+| `MATCH_GIT_URL` | Private cert repo URL (e.g. `https://github.com/LLLlamas/Our-Weather-certs.git`) | pending |
 | `MATCH_GIT_BASIC_AUTHORIZATION` | Base64 of `x-access-token:PAT` for HTTPS auth to the match repo | pending |
 
 ### What NOT to do yet
