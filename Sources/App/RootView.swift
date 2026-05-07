@@ -50,7 +50,7 @@ struct RootView: View {
             VStack(spacing: 24) {
                 header(forecast)
                 HourlyStrip(hours: forecast.hourly)
-                DailyList(days: forecast.daily)
+                DailyList(days: forecast.daily, currentTempC: forecast.current.temperatureC)
                 ConditionCards(current: forecast.current, today: forecast.daily.first)
             }
             .padding(.horizontal)

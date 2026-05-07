@@ -31,7 +31,7 @@ Our-Weather/
 │   ├── Views/
 │   │   ├── TempView.swift         # Dual F/C renderer + Temperature enum (pure helpers)    [shipped]
 │   │   ├── HourlyStrip.swift      # horizontal hourly forecast (next 24h)                  [shipped]
-│   │   ├── DailyList.swift        # 10-day forecast list                                   [shipped]
+│   │   ├── DailyList.swift        # 10-day forecast: range bars, precip %, today's temp dot [shipped]
 │   │   ├── ConditionCards.swift   # 2-col grid: Feels Like, UV, Humidity, Wind, Sunrise    [shipped]
 │   │   └── WeatherBackground.swift # condition + isDay → gradient colors                   [shipped]
 │   ├── Services/
