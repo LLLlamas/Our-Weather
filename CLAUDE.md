@@ -27,18 +27,23 @@ Our-Weather/
 ├── Sources/
 │   ├── App/
 │   │   ├── OurWeatherApp.swift    # @main entry point                                      [shipped]
-│   │   └── RootView.swift         # current weather screen, async fetch + dual-unit row    [shipped]
+│   │   └── RootView.swift         # paged TabView of WeatherPageViews + locations sheet    [shipped]
 │   ├── Views/
 │   │   ├── TempView.swift         # Dual F/C renderer + Temperature enum (pure helpers)    [shipped]
-│   │   ├── HourlyStrip.swift      # horizontal hourly forecast (next 24h)                  [shipped]
-│   │   ├── DailyList.swift        # 10-day forecast: range bars, precip %, today's temp dot [shipped]
+│   │   ├── WeatherPageView.swift  # one location's weather screen (header + sections)      [shipped]
+│   │   ├── HourlyStrip.swift      # next 24h with day-transition pills                     [shipped]
+│   │   ├── DailyList.swift        # 10-day forecast: range bars, precip %, today's dot     [shipped]
 │   │   ├── ConditionCards.swift   # 2-col grid: Feels Like, UV, Humidity, Wind, Sunrise    [shipped]
-│   │   └── WeatherBackground.swift # condition + isDay → gradient colors                   [shipped]
+│   │   ├── WeatherBackground.swift # condition + isDay → gradient colors                   [shipped]
+│   │   └── LocationsSheet.swift   # search (Open-Meteo geocoding) + saved-list management  [shipped]
 │   ├── Services/
-│   │   ├── WeatherClient.swift    # Open-Meteo client; private wire-format types inside    [shipped]
-│   │   └── LocationService.swift  # CoreLocation wrapper + reverse geocoding               [shipped]
+│   │   ├── WeatherClient.swift    # Open-Meteo forecast client                             [shipped]
+│   │   ├── LocationService.swift  # CoreLocation wrapper + reverse geocoding               [shipped]
+│   │   ├── LocationStore.swift    # @Observable saved-locations + UserDefaults persistence [shipped]
+│   │   └── GeocodingClient.swift  # Open-Meteo geocoding (city search → coordinates)       [shipped]
 │   └── Models/
-│       └── Forecast.swift         # domain types (NOT Codable) consumed by views           [shipped]
+│       ├── Forecast.swift         # domain types (NOT Codable) consumed by views           [shipped]
+│       └── SavedLocation.swift    # Codable user-pinned location, persisted in UserDefaults [shipped]
 ├── Tests/
 │   └── TemperatureTests.swift     # swift-testing tests for Temperature helpers            [shipped]
 ├── Resources/
@@ -153,6 +158,7 @@ The build number passed via `xcargs: CURRENT_PROJECT_VERSION=…` rather than mu
 - **App icon is one 1024x1024 PNG — no alpha channel.** TestFlight rejects any IPA without iPhone 120x120 + iPad 152x152 icons. Xcode 14+'s "All-Sized Image" feature generates every required device variant at build time from a single 1024x1024 universal icon, so `AppIcon.appiconset/Contents.json` only references one image (`Icon-1024.png`). To replace the icon, just overwrite that PNG; do not add per-size entries unless you have a reason. **The PNG must not have an alpha channel** — App Store Connect (altool) rejects it with "Invalid large app icon ... can't be transparent or contain an alpha channel." Strip alpha before committing: flatten onto a white background and save as RGB (color type 2), not RGBA (color type 6).
 - **`TARGETED_DEVICE_FAMILY: "1,2"` (iPhone + iPad) requires explicit iPad orientation key.** When the app declares iPad support, App Store Connect mandates `UISupportedInterfaceOrientations` for iPad. XcodeGen exposes this as `INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad` in `project.yml`. Omitting it causes altool to reject the upload with "No orientations were specified ... To support iPad multitasking, specify all four orientations."
 - **Pin Xcode 26 explicitly in `release.yml`.** `macos-latest` runners ship Xcode 26 but default to Xcode 16.4, which builds against the iOS 18.5 SDK. App Store Connect rejects builds not compiled with the iOS 26 SDK. Add `sudo xcode-select -s /Applications/Xcode_26.3.app/Contents/Developer` as the first step in `release.yml` (before XcodeGen) to lock the SDK. Update the path if a newer Xcode 26.x arrives on the runner image.
+- **Declare encryption-export status to skip the TestFlight compliance prompt.** Without this, every TestFlight upload sits in "Missing Compliance" until you manually answer the encryption question in App Store Connect. Setting `INFOPLIST_KEY_ITSAppUsesNonExemptEncryption: NO` in `project.yml` declares the app uses only standard system crypto (HTTPS via `URLSession` qualifies as exempt). Permanent — no per-build prompt.
 
 ## Apple Developer setup (one-time)
 
@@ -239,16 +245,19 @@ If a change makes a section of CLAUDE.md inaccurate, fix the section. If the sec
 ## Current status & next steps
 
 What's working today:
-- Project compiles + tests pass via `build.yml` on GitHub Actions
-- App fetches real Open-Meteo data and renders current temp + condition + today's H/L, all in dual F/C via `TempView`
-- **Device location** via `LocationService` (CoreLocation `liveUpdates` + `CLGeocoder` reverse geocoding); falls back to Cupertino if permission is denied/unavailable
-- **Hourly strip** — horizontal scroll of next 24h with weather icon + compact dual-unit temp
-- **Daily list** — 10-day forecast with day name, condition icon, dual-unit low/high
+- Project compiles + tests pass via `build.yml` on GitHub Actions; signed Release uploads to TestFlight via `release.yml`
+- **Multi-location** — paged TabView swipes between saved locations iOS-Weather-style; `LocationStore` persists the list to `UserDefaults` and remembers the selected location across launches
+- **Search** — list button (top-right) opens `LocationsSheet`; type to search via Open-Meteo's free geocoding API; tap a result to add + jump to it; swipe to delete pinned locations (Current Location can't be deleted)
+- **Device location** — `LocationService` (CoreLocation `liveUpdates` + `CLGeocoder` reverse geocoding) inserts a "Current Location" entry at top on first successful resolve and auto-selects it
+- **Per-location forecast** — `WeatherPageView` fetches Open-Meteo data per location, renders header + hourly + 10-day + condition cards, all in dual F/C via `TempView`
+- **Hourly strip** — next 24h with day-transition pills above the time when hours roll into a new day
+- **Daily list** — exactly 10 days with iOS-Weather-style range bars (positioned along the week's min/max axis, color-graded by temperature), precipitation chance ≥30%, and a white dot on today's row showing the current temp
 - **Condition cards** — 2-column grid of Feels Like, UV Index, Humidity, Wind, Sunrise/Sunset
-- **Dynamic background** — `WeatherBackground` picks gradient colors based on `WeatherCondition` + `isDay` (clear/partly cloudy have day vs night variants; rain/snow/storm are same day or night)
+- **Dynamic background** — `WeatherBackground` picks gradient colors based on `WeatherCondition` + `isDay`
 
-Remaining pieces (after first TestFlight build lands):
-1. *(stretch)* Response cache (~10 min) so screen-on doesn't refetch every time
-2. *(stretch)* Live Activity / lock-screen widget showing current temp in dual F/C
-3. *(stretch)* WeatherKit migration (better data; needs entitlement enabled on the App ID)
-4. *(stretch)* Search / saved-locations list so you can check weather for places other than current location
+Remaining pieces:
+1. **Lock-screen widget + Home Screen widget** — WidgetExtension target, `TimelineProvider` fetching forecast on a schedule, glanceable current temp in dual F/C across small/medium/large families
+2. **Live Activity / Dynamic Island** — `ActivityKit` framework, requires `NSSupportsLiveActivities = YES`; live current temp pinned to the lock screen and Dynamic Island
+3. *(stretch)* Response cache (~10 min) so re-opening the app doesn't refetch immediately
+4. *(stretch)* WeatherKit migration (better data; needs entitlement enabled on the App ID)
+5. *(stretch)* Replace placeholder app icon with real artwork

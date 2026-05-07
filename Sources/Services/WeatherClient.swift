@@ -22,7 +22,7 @@ struct OpenMeteoClient: WeatherClient {
             .init(name: "temperature_unit", value: "celsius"),
             .init(name: "wind_speed_unit", value: "kmh"),
             .init(name: "timezone", value: "auto"),
-            .init(name: "forecast_days", value: "10"),
+            .init(name: "forecast_days", value: "16"),
         ]
         guard let url = components.url else { throw URLError(.badURL) }
 

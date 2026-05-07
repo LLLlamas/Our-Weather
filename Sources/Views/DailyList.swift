@@ -4,9 +4,13 @@ struct DailyList: View {
     let days: [DailyEntry]
     var currentTempC: Double? = nil
 
+    private var visibleDays: [DailyEntry] {
+        Array(days.prefix(10))
+    }
+
     private var weekRange: (min: Double, max: Double) {
-        let lows = days.map(\.lowC)
-        let highs = days.map(\.highC)
+        let lows = visibleDays.map(\.lowC)
+        let highs = visibleDays.map(\.highC)
         return (
             min: lows.min() ?? 0,
             max: highs.max() ?? 1
@@ -20,14 +24,14 @@ struct DailyList: View {
                 .foregroundStyle(.white.opacity(0.7))
 
             VStack(spacing: 0) {
-                ForEach(Array(days.enumerated()), id: \.element.id) { index, day in
+                ForEach(Array(visibleDays.enumerated()), id: \.element.id) { index, day in
                     DailyRow(
                         day: day,
                         isToday: index == 0,
                         weekRange: weekRange,
                         currentTempC: index == 0 ? currentTempC : nil
                     )
-                    if index < days.count - 1 {
+                    if index < visibleDays.count - 1 {
                         Divider()
                             .background(.white.opacity(0.25))
                     }
