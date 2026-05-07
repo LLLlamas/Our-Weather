@@ -91,6 +91,7 @@ enum Temperature {
 - **Wire format types** (`OpenMeteoResponse` + nested `Current`/`Hourly`/`Daily`) are `private` inside `Sources/Services/WeatherClient.swift`. They mirror Open-Meteo's parallel-array shape and never leak out of that file.
 - **Domain types** (`Forecast`, `CurrentConditions`, `HourlyEntry`, `DailyEntry`, `WeatherCondition`) live in `Sources/Models/Forecast.swift`. They are NOT `Codable` — they're the clean shape views consume. All `Sendable`.
 - **WMO weather codes** are mapped to a small `WeatherCondition` enum in `Forecast.swift`. Add codes if Open-Meteo returns one we miss.
+- **Open-Meteo uses TWO date formats in one response.** `current.time`, `hourly.time`, `daily.sunrise`, `daily.sunset` are datetime strings (`"2026-05-07T16:00"`). `daily.time` is date-only (`"2026-05-07"`). Parsing all of them with one `"yyyy-MM-dd'T'HH:mm"` formatter silently fails on `daily.time` and `compactMap` drops every daily entry, producing an empty 10-day forecast. `WeatherClient.swift` keeps two formatters (`openMeteoDateTime` and `openMeteoDate`) for this reason — don't consolidate.
 
 ## Data source: Open-Meteo
 

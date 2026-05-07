@@ -76,10 +76,11 @@ private struct OpenMeteoResponse: Decodable {
     }
 
     func toForecast() -> Forecast {
-        let formatter = DateFormatter.openMeteoLocal(timezone: timezone)
+        let dateTimeFormatter = DateFormatter.openMeteoDateTime(timezone: timezone)
+        let dateFormatter = DateFormatter.openMeteoDate(timezone: timezone)
 
         let currentConditions = CurrentConditions(
-            time: formatter.date(from: current.time) ?? .now,
+            time: dateTimeFormatter.date(from: current.time) ?? .now,
             temperatureC: current.temperature_2m,
             apparentTemperatureC: current.apparent_temperature,
             humidity: current.relative_humidity_2m,
@@ -92,7 +93,7 @@ private struct OpenMeteoResponse: Decodable {
 
         let hourlyEntries: [HourlyEntry] = zip4(hourly.time, hourly.temperature_2m, hourly.weather_code, hourly.precipitation_probability)
             .compactMap { time, temp, code, precip in
-                guard let date = formatter.date(from: time) else { return nil }
+                guard let date = dateTimeFormatter.date(from: time) else { return nil }
                 return HourlyEntry(
                     time: date,
                     temperatureC: temp,
@@ -102,9 +103,10 @@ private struct OpenMeteoResponse: Decodable {
             }
 
         let dailyEntries: [DailyEntry] = (0..<daily.time.count).compactMap { i in
-            guard let date = formatter.date(from: daily.time[i]),
-                  let sunrise = formatter.date(from: daily.sunrise[i]),
-                  let sunset = formatter.date(from: daily.sunset[i]) else { return nil }
+            // daily.time is date-only ("yyyy-MM-dd"); sunrise/sunset are datetime.
+            guard let date = dateFormatter.date(from: daily.time[i]),
+                  let sunrise = dateTimeFormatter.date(from: daily.sunrise[i]),
+                  let sunset = dateTimeFormatter.date(from: daily.sunset[i]) else { return nil }
             return DailyEntry(
                 date: date,
                 highC: daily.temperature_2m_max[i],
@@ -127,11 +129,23 @@ private struct OpenMeteoResponse: Decodable {
 }
 
 private extension DateFormatter {
-    /// Open-Meteo returns naive ISO strings (`yyyy-MM-dd'T'HH:mm`) interpreted in the response's timezone.
-    static func openMeteoLocal(timezone: String) -> DateFormatter {
+    /// `current.time`, `hourly.time`, `daily.sunrise`, `daily.sunset` — naive ISO datetimes
+    /// interpreted in the response's timezone (e.g. `"2026-05-07T16:00"`).
+    static func openMeteoDateTime(timezone: String) -> DateFormatter {
         let f = DateFormatter()
         f.locale = Locale(identifier: "en_US_POSIX")
         f.dateFormat = "yyyy-MM-dd'T'HH:mm"
+        f.timeZone = TimeZone(identifier: timezone) ?? .gmt
+        return f
+    }
+
+    /// `daily.time` — date-only (e.g. `"2026-05-07"`); does NOT include time component.
+    /// Using the datetime formatter for these silently fails parsing and the whole daily
+    /// array gets dropped by `compactMap`, leaving the 10-day forecast empty.
+    static func openMeteoDate(timezone: String) -> DateFormatter {
+        let f = DateFormatter()
+        f.locale = Locale(identifier: "en_US_POSIX")
+        f.dateFormat = "yyyy-MM-dd"
         f.timeZone = TimeZone(identifier: timezone) ?? .gmt
         return f
     }
