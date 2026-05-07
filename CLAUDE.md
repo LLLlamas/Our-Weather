@@ -161,22 +161,17 @@ Stores the distribution certificate + provisioning profile encrypted in a privat
 
 **One-time bootstrap (do these once, in order, before pushing the first tag):**
 1. **Create a private GitHub repo for the certs** — name it whatever you want (e.g. `Our-Weather-certs`). It can stay empty; match will populate it on first run.
-2. **Generate a fine-grained personal access token (PAT)** — GitHub → Settings → Developer settings → Personal access tokens → Fine-grained tokens. Scope: only the certs repo. Permissions: **Contents: Read and write**.
-3. **Encode the PAT for `MATCH_GIT_BASIC_AUTHORIZATION`** — fastlane expects basic auth in the form `base64("x-access-token:PAT")`. PowerShell:
+2. **Generate a fine-grained personal access token (PAT)** — GitHub → Settings → Developer settings → Personal access tokens → Fine-grained tokens. Repository access: only the certs repo. Permissions: **Contents: Read and write**.
+3. **Add two new GitHub Actions secrets** (Repo → Settings → Secrets and variables → Actions):
+   - `MATCH_GIT_URL` — embed the PAT in the URL: `https://x-access-token:YOUR_PAT@github.com/LLLlamas/Our-Weather-certs.git`. This is simpler and more reliable than the alternative basic-auth-header approach (which requires base64-encoding the PAT and is sensitive to whitespace in the secret editor).
+   - `MATCH_PASSWORD` — pick a strong passphrase, save it in your password manager. Lose this and the certs in the match repo become unrecoverable (revoke + regenerate from scratch).
+4. **Test locally first** — before triggering the workflow, verify auth works from your machine:
    ```powershell
-   [Convert]::ToBase64String([Text.Encoding]::UTF8.GetBytes("x-access-token:YOUR_PAT_HERE")) | Set-Clipboard
+   git ls-remote https://x-access-token:YOUR_PAT@github.com/LLLlamas/Our-Weather-certs.git
    ```
-4. **Add three new GitHub Actions secrets** (Repo → Settings → Secrets and variables → Actions):
-   - `MATCH_GIT_URL` — `https://github.com/LLLlamas/Our-Weather-certs.git`
-   - `MATCH_GIT_BASIC_AUTHORIZATION` — paste the base64 from step 3
-   - `MATCH_PASSWORD` — pick a strong passphrase, save it in your password manager. Lose this and the certs in the match repo become unrecoverable (you'd revoke the cert in the dev portal and regenerate from scratch).
+   Empty output (or HEAD/branch refs) = success. Authentication failed = wrong PAT or scope. Repository not found = wrong URL.
 5. **Confirm App Store Connect app record exists** — `My Apps → +` with bundle ID `com.ourweather.app`. Without it, `upload_to_testflight` fails.
-6. **Push a tag**:
-   ```
-   git tag v0.1.0
-   git push --tags
-   ```
-   This triggers `release.yml`. First run takes ~10–15 min (cert generation + initial archive). Subsequent runs are faster (~5–8 min).
+6. **Trigger the workflow** — first time, do it manually via Actions → Release to TestFlight → Run workflow (avoids burning a tag if anything fails). Once green, subsequent releases via `git tag v0.1.0 && git push --tags`. First run takes ~10–15 min (cert generation + initial archive). Subsequent runs are faster (~5–8 min).
 
 ### GitHub Actions secrets
 
@@ -186,9 +181,8 @@ Stores the distribution certificate + provisioning profile encrypted in a privat
 | `APP_STORE_CONNECT_API_KEY_ID` | API key page | set by user |
 | `APP_STORE_CONNECT_API_ISSUER_ID` | API key page | set by user |
 | `APP_STORE_CONNECT_API_KEY_CONTENT` | The `.p8` file, base64-encoded (PowerShell: `[Convert]::ToBase64String([IO.File]::ReadAllBytes("AuthKey_XXX.p8")) \| Set-Clipboard`) | set by user |
-| `MATCH_PASSWORD` | Passphrase you choose; encrypts certs in the match repo | pending |
-| `MATCH_GIT_URL` | Private cert repo URL (e.g. `https://github.com/LLLlamas/Our-Weather-certs.git`) | pending |
-| `MATCH_GIT_BASIC_AUTHORIZATION` | Base64 of `x-access-token:PAT` for HTTPS auth to the match repo | pending |
+| `MATCH_PASSWORD` | Passphrase you choose; encrypts certs in the match repo | set by user |
+| `MATCH_GIT_URL` | Private cert repo URL with PAT embedded: `https://x-access-token:PAT@github.com/LLLlamas/Our-Weather-certs.git` | set by user |
 
 ### What NOT to do yet
 - Don't enable WeatherKit — we're on Open-Meteo. Defer until/unless we migrate.
