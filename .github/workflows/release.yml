@@ -31,11 +31,22 @@ jobs:
       - name: Generate Xcode project
         run: xcodegen generate
 
+      - name: Decode App Store Connect API key to file
+        env:
+          KEY_B64: ${{ secrets.APP_STORE_CONNECT_API_KEY_CONTENT }}
+        run: |
+          mkdir -p "$RUNNER_TEMP/private_keys"
+          printf '%s' "$KEY_B64" | base64 --decode > "$RUNNER_TEMP/private_keys/AuthKey.p8"
+          # sanity check
+          head -c 30 "$RUNNER_TEMP/private_keys/AuthKey.p8"
+          echo
+          wc -c "$RUNNER_TEMP/private_keys/AuthKey.p8"
+
       - name: Build & upload to TestFlight
         env:
           APP_STORE_CONNECT_API_KEY_ID: ${{ secrets.APP_STORE_CONNECT_API_KEY_ID }}
           APP_STORE_CONNECT_API_ISSUER_ID: ${{ secrets.APP_STORE_CONNECT_API_ISSUER_ID }}
-          APP_STORE_CONNECT_API_KEY_CONTENT: ${{ secrets.APP_STORE_CONNECT_API_KEY_CONTENT }}
+          APP_STORE_CONNECT_API_KEY_PATH: ${{ runner.temp }}/private_keys/AuthKey.p8
           MATCH_GIT_URL: ${{ secrets.MATCH_GIT_URL }}
           MATCH_PASSWORD: ${{ secrets.MATCH_PASSWORD }}
           FASTLANE_SKIP_UPDATE_CHECK: 1
