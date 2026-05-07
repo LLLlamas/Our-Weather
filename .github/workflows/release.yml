@@ -46,7 +46,7 @@ jobs:
         env:
           APP_STORE_CONNECT_API_KEY_ID: ${{ secrets.APP_STORE_CONNECT_API_KEY_ID }}
           APP_STORE_CONNECT_API_ISSUER_ID: ${{ secrets.APP_STORE_CONNECT_API_ISSUER_ID }}
-          APP_STORE_CONNECT_API_KEY_PATH: ${{ runner.temp }}/private_keys/AuthKey.p8
+          ASC_KEY_FILE: ${{ runner.temp }}/private_keys/AuthKey.p8
           MATCH_GIT_URL: ${{ secrets.MATCH_GIT_URL }}
           MATCH_PASSWORD: ${{ secrets.MATCH_PASSWORD }}
           FASTLANE_SKIP_UPDATE_CHECK: 1
