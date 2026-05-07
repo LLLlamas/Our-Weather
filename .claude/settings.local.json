@@ -1,7 +1,9 @@
 {
   "permissions": {
     "allow": [
-      "PowerShell(Set-Clipboard *)"
+      "PowerShell(Set-Clipboard *)",
+      "PowerShell(Select-String -Path \"C:\\\\Users\\\\fines\\\\Documents\\\\2026 Repository\\\\Our-Weather\\\\logs_68000678693\\\\build\\\\6_Build.txt\" -Pattern \"error:\" | Select-Object -First 40 | ForEach-Object { $_.Line })",
+      "PowerShell(Select-String -Path \"C:\\\\Users\\\\fines\\\\Documents\\\\2026 Repository\\\\Our-Weather\\\\logs_68000678693\\\\build\\\\6_Build.txt\" -Pattern \"error:|warning:|Failed|FAILED|note:\" | Select-Object -First 60 | ForEach-Object { $_.Line })"
     ]
   }
 }

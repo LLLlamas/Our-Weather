@@ -12,14 +12,14 @@ struct WeatherProvider: TimelineProvider {
     }
 
     func getSnapshot(in context: Context, completion: @escaping (WeatherEntry) -> Void) {
-        Task {
+        Task { [completion] in
             let entry = await fetchEntry()
             completion(entry)
         }
     }
 
     func getTimeline(in context: Context, completion: @escaping (Timeline<WeatherEntry>) -> Void) {
-        Task {
+        Task { [completion] in
             let entry = await fetchEntry()
             let nextUpdate = Date.now.addingTimeInterval(30 * 60)
             let timeline = Timeline(entries: [entry], policy: .after(nextUpdate))
