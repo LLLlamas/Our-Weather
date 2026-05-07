@@ -1,5 +1,17 @@
 import SwiftUI
 
+/// Pure conversion helpers — kept out of any `View` so they aren't bound to `@MainActor`
+/// and can be called freely from tests and background work.
+enum Temperature {
+    static func fahrenheit(fromCelsius celsius: Double) -> Int {
+        Int((celsius * 9 / 5 + 32).rounded())
+    }
+
+    static func celsius(rounded celsius: Double) -> Int {
+        Int(celsius.rounded())
+    }
+}
+
 /// Single source of truth for temperature display.
 /// Always renders both Fahrenheit and Celsius — the product rule.
 struct TempView: View {
@@ -7,19 +19,13 @@ struct TempView: View {
     var compact: Bool = false
 
     var body: some View {
+        let f = Temperature.fahrenheit(fromCelsius: celsius)
+        let c = Temperature.celsius(rounded: celsius)
         if compact {
-            Text("\(fahrenheit)° / \(celsiusInt)°")
+            Text("\(f)° / \(c)°")
         } else {
-            Text("\(fahrenheit)°F / \(celsiusInt)°C")
+            Text("\(f)°F / \(c)°C")
         }
-    }
-
-    var fahrenheit: Int {
-        Int((celsius * 9 / 5 + 32).rounded())
-    }
-
-    var celsiusInt: Int {
-        Int(celsius.rounded())
     }
 }
 
