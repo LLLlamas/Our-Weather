@@ -129,6 +129,40 @@ GitHub Actions secrets needed:
 - **Prefer `struct` over `class`.** Reach for class only when reference semantics or `ObservableObject`-era APIs require it.
 - **Force-unwraps are bugs.** Use `guard let` / `if let` / `??`.
 
+## Apple Developer setup (one-time)
+
+Before the first TestFlight upload works, the following must be in place. Most of this is portal-side, not in the codebase.
+
+### Portal actions
+1. **Register App ID** — Apple Developer portal → Identifiers → App IDs → explicit, bundle ID `com.ourweather.app` (must match `PRODUCT_BUNDLE_IDENTIFIER` in `project.yml`). No special capabilities yet (WeatherKit only when/if we migrate from Open-Meteo).
+2. **Create app record in App Store Connect** — My Apps → +; pick the registered bundle ID. Without this, fastlane uploads fail with "no such app."
+3. **Find Team ID** — Membership page; populate `DEVELOPMENT_TEAM` in `project.yml`.
+4. **Create App Store Connect API Key** — Users and Access → Integrations → App Store Connect API → +; role **App Manager**. Download the `.p8` once. Note the **Key ID** and **Issuer ID**.
+
+### Code signing — `fastlane match`
+Standard solution for "no Mac, CI signs builds." Stores distribution cert + provisioning profile encrypted in a private git repo; CI pulls them on every build. Setup happens when `release.yml` is wired up; no extra portal action is needed for `match` itself — it provisions certs via the API key from step 4.
+
+### GitHub Actions secrets
+
+| Secret | Source |
+|---|---|
+| `APPLE_TEAM_ID` | Membership page |
+| `APP_STORE_CONNECT_API_KEY_ID` | API key page |
+| `APP_STORE_CONNECT_API_ISSUER_ID` | API key page |
+| `APP_STORE_CONNECT_API_KEY_CONTENT` | The `.p8` file, base64-encoded (PowerShell: `[Convert]::ToBase64String([IO.File]::ReadAllBytes("AuthKey_XXX.p8")) \| Set-Clipboard`) |
+| `MATCH_PASSWORD` | Passphrase chosen at match init time |
+| `MATCH_GIT_URL` | Private cert repo URL (created during match setup) |
+
+### What NOT to do yet
+- Don't enable WeatherKit — we're on Open-Meteo. Defer until/unless we migrate.
+- Don't fill App Store metadata / screenshots — TestFlight builds work without it; only required for App Store release.
+- Don't manually create distribution certificates or provisioning profiles — `match` does it.
+- Don't register devices — TestFlight doesn't need UDIDs (that's only for ad-hoc / development builds).
+
+### Secret hygiene
+- `.p8` keys, `.p12` certs, `.mobileprovision` files, and `.env` files are in `.gitignore`. Never commit them.
+- The `.p8` is single-download; if lost, revoke the key and generate a new one.
+
 ## Deployment
 
 ```

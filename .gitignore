@@ -23,3 +23,11 @@ fastlane/test_output
 # IDEs
 .vscode/
 .idea/
+
+# Secrets — NEVER commit
+AuthKey_*.p8
+*.p12
+*.mobileprovision
+*.cer
+.env
+.env.local
