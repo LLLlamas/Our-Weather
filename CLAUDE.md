@@ -7,7 +7,7 @@ A native iOS clone of Apple's Weather app with one core differentiator: **temper
 - **Swift 6 + SwiftUI** — native iOS 26+, matches the visual language we're cloning
 - **XcodeGen** — generates `.xcodeproj` from a plain-text `project.yml` so the project is editable from Windows without checking in binary Xcode files
 - **GitHub Actions (macos-latest runners)** — cloud builds; no local Mac required
-- **fastlane** — automates TestFlight uploads from CI *(planned, not yet wired)*
+- **fastlane** — automates TestFlight uploads from CI
 - **Open-Meteo API** — weather data, free, no API key (https://open-meteo.com)
 - **TestFlight → App Store** — distribution via existing Apple Developer account
 
@@ -42,8 +42,7 @@ Our-Weather/
 │   │   ├── WeatherWidget.swift    # StaticConfiguration + WeatherBackground container       [shipped]
 │   │   ├── WeatherWidgetView.swift # small/medium + accessory sizes                        [shipped]
 │   │   ├── WeatherProvider.swift  # TimelineProvider, 30-min refresh, cached CLLocation    [shipped]
-│   │   ├── WeatherEntry.swift     # TimelineEntry data shape                               [shipped]
-│   │   └── Info.plist             # NSExtension config for widget extension                [shipped]
+│   │   └── WeatherEntry.swift     # TimelineEntry data shape                               [shipped]
 │   ├── Services/
 │   │   ├── WeatherClient.swift    # Open-Meteo forecast client                             [shipped]
 │   │   ├── LocationService.swift  # CoreLocation wrapper + reverse geocoding               [shipped]
@@ -117,7 +116,7 @@ enum Temperature {
 2. Pure-logic code (formatters, models, parsing) can be unit-tested locally on Windows via Swift Package Manager: `swift test` *(no `Package.swift` yet — add when needed)*
 3. UI changes are written without local previews — push to a feature branch
 4. **GitHub Actions** runs `build.yml` on macos-latest: regenerates `.xcodeproj` via XcodeGen, builds the app, runs tests
-5. Tag a release (`git tag v0.1.0 && git push --tags`) to trigger `release.yml` → fastlane uploads to TestFlight *(release.yml planned)*
+5. Tag a release (`git tag v0.1.0 && git push --tags`) to trigger `release.yml` → fastlane uploads to TestFlight
 6. Test on physical iPhone via the **TestFlight** app
 
 The dev loop is slower than local Xcode (push-and-wait instead of cmd-R), so favor:
@@ -170,14 +169,18 @@ The build number passed via `xcargs: CURRENT_PROJECT_VERSION=…` rather than mu
 - **Pin Xcode 26 explicitly in both `build.yml` and `release.yml`.** `macos-latest` runners ship Xcode 26 but default to Xcode 16.4, which builds against the iOS 18.5 SDK. Add `sudo xcode-select -s /Applications/Xcode_26.3.app/Contents/Developer` as the first step in both workflows (after checkout, before XcodeGen). Without this in `build.yml`, the build job compiles with Swift from Xcode 16.4 — a different compiler than `release.yml` uses — causing Swift 6 strictness divergence where `build.yml` passes but `release.yml` fails (or vice versa). Keeping both pinned to the same Xcode means CI and release use identical toolchains. Update the path when a newer Xcode 26.x arrives on the runner image.
 - **`TimelineProvider` completion closures must be `@Sendable` and captured explicitly.** Swift 6 strict concurrency treats a `Task` body as a `sending` closure. Declare both parameters as `@escaping @Sendable` (e.g. `completion: @escaping @Sendable (WeatherEntry) -> Void`) and capture with `[completion]` in the Task body. `@Sendable` makes the closure type itself `Sendable` so the capture crosses the domain boundary safely; `[completion]` copies the value into the Task. Without `@Sendable`, Xcode 16.4's Swift 6 compiler rejects the capture with "passing closure as a 'sending' parameter risks causing data races" even when `[completion]` is present. Applies to both `getSnapshot` and `getTimeline`.
 - **Declare encryption-export status to skip the TestFlight compliance prompt.** Without this, every TestFlight upload sits in "Missing Compliance" until you manually answer the encryption question in App Store Connect. Setting `INFOPLIST_KEY_ITSAppUsesNonExemptEncryption: NO` in `project.yml` declares the app uses only standard system crypto (HTTPS via `URLSession` qualifies as exempt). Permanent — no per-build prompt.
+- **Never include `NSExtension` in a WidgetKit extension's Info.plist.** App Store Connect rejects the IPA with "Invalid Info.plist Key. The key 'NSExtension' is not valid" (error 409). On modern Xcode / iOS 26 SDK the build system injects the extension point identifier automatically when it processes `@main WidgetBundle` — supplying it again in a hand-authored plist is both redundant and fatal to validation. The widget target must use `GENERATE_INFOPLIST_FILE: YES` + `INFOPLIST_KEY_*` settings in `project.yml` (same pattern as the host app target), with no `Info.plist` file in `Sources/Widget/`.
 
 ## Apple Developer setup (one-time)
 
 Before the first TestFlight upload works, the following must be in place. Most of this is portal-side, not in the codebase.
 
 ### Portal actions
-1. **Register App ID** — Apple Developer portal → Identifiers → App IDs → explicit, bundle ID `com.ourweather.app` (must match `PRODUCT_BUNDLE_IDENTIFIER` in `project.yml`). No special capabilities yet (WeatherKit only when/if we migrate from Open-Meteo).
-2. **Create app record in App Store Connect** — My Apps → +; pick the registered bundle ID. Without this, fastlane uploads fail with "no such app."
+1. **Register App IDs** — Apple Developer portal → Identifiers → App IDs → +; create two explicit App IDs:
+   - `com.ourweather.app` — the main app
+   - `com.ourweather.app.WeatherWidget` — the widget extension (WidgetKit requires its own App ID, separate from the host app's). **`fastlane match` will fail with "Couldn't find bundle identifier 'com.ourweather.app.WeatherWidget'" if this is missing** — it cannot create a provisioning profile for an unregistered ID, even with `readonly: false`.
+   No special capabilities on either for now (WeatherKit only when/if we migrate from Open-Meteo).
+2. **Create app record in App Store Connect** — My Apps → +; pick `com.ourweather.app`. Without this, fastlane uploads fail with "no such app." The widget extension does **not** need its own App Store Connect record — only the main app does.
 3. **Find Team ID** — Membership page; populate `DEVELOPMENT_TEAM` in `project.yml`. *(currently `GYFN949Q5E`)*
 4. **Create App Store Connect API Key** — Users and Access → Integrations → App Store Connect API → +; role **App Manager**. Download the `.p8` once. Note the **Key ID** and **Issuer ID**.
 
