@@ -11,7 +11,11 @@
       "PowerShell(Select-String -Path \"C:\\\\Users\\\\fines\\\\Documents\\\\2026 Repository\\\\Our-Weather\\\\logs_extracted\\\\build\\\\6_Build.txt\" -Pattern \"CompileSwift|swiftc|SWIFT_VERSION|Swift version\" | Select-Object -First 10 | ForEach-Object { $_.Line })",
       "Bash(Remove-Item *)",
       "PowerShell(Expand-Archive *)",
-      "Bash(powershell -Command \"Expand-Archive -Path logs_68007238543.zip -DestinationPath logs_68007238543 -Force; Get-ChildItem logs_68007238543 -Recurse -File | Select-Object -ExpandProperty FullName\")"
+      "Bash(powershell -Command \"Expand-Archive -Path logs_68007238543.zip -DestinationPath logs_68007238543 -Force; Get-ChildItem logs_68007238543 -Recurse -File | Select-Object -ExpandProperty FullName\")",
+      "Bash(Expand-Archive -Path \"C:\\\\Users\\\\fines\\\\Documents\\\\2026 Repository\\\\Our-Weather\\\\logs_68089984875.zip\" -DestinationPath \"C:\\\\Users\\\\fines\\\\Documents\\\\2026 Repository\\\\Our-Weather\\\\logs_68089984875\" -Force)",
+      "Bash(Get-ChildItem \"C:\\\\Users\\\\fines\\\\Documents\\\\2026 Repository\\\\Our-Weather\\\\logs_68089984875\" -Recurse)",
+      "Bash(Select-Object FullName)",
+      "Bash(Head -50)"
     ]
   }
 }
