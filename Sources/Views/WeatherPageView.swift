@@ -8,6 +8,7 @@ struct WeatherPageView: View {
 
     @State private var forecast: Forecast?
     @State private var loadError: String?
+    @AppStorage("forceNightMode") private var forceNightMode = false
 
     var body: some View {
         ZStack {
@@ -92,7 +93,7 @@ struct WeatherPageView: View {
     private var background: some View {
         WeatherBackground(
             condition: forecast?.current.condition ?? .clear,
-            isDay: forecast?.current.isDay ?? true
+            isDay: forceNightMode ? false : (forecast?.current.isDay ?? true)
         )
     }
 
