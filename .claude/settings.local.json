@@ -3,7 +3,12 @@
     "allow": [
       "PowerShell(Set-Clipboard *)",
       "PowerShell(Select-String -Path \"C:\\\\Users\\\\fines\\\\Documents\\\\2026 Repository\\\\Our-Weather\\\\logs_68000678693\\\\build\\\\6_Build.txt\" -Pattern \"error:\" | Select-Object -First 40 | ForEach-Object { $_.Line })",
-      "PowerShell(Select-String -Path \"C:\\\\Users\\\\fines\\\\Documents\\\\2026 Repository\\\\Our-Weather\\\\logs_68000678693\\\\build\\\\6_Build.txt\" -Pattern \"error:|warning:|Failed|FAILED|note:\" | Select-Object -First 60 | ForEach-Object { $_.Line })"
+      "PowerShell(Select-String -Path \"C:\\\\Users\\\\fines\\\\Documents\\\\2026 Repository\\\\Our-Weather\\\\logs_68000678693\\\\build\\\\6_Build.txt\" -Pattern \"error:|warning:|Failed|FAILED|note:\" | Select-Object -First 60 | ForEach-Object { $_.Line })",
+      "PowerShell(Get-ChildItem \"C:\\\\Users\\\\fines\\\\Documents\\\\2026 Repository\\\\Our-Weather\\\\logs_extracted\" -Recurse -File | Select-Object FullName, @{N='KB';E={[math]::Round\\($_.Length/1KB,1\\)}} | Sort-Object KB -Descending | Format-Table -AutoSize)",
+      "PowerShell(Select-String -Path \"C:\\\\Users\\\\fines\\\\Documents\\\\2026 Repository\\\\Our-Weather\\\\logs_extracted\\\\build\\\\6_Build.txt\" -Pattern \"error:|note:|warning:\" -Context 0,2 | Select-Object -First 60 | ForEach-Object { \"L$\\($_.LineNumber\\): $\\($_.Line\\)\"; $_.Context.PostContext | ForEach-Object { \"  > $_\" } })",
+      "PowerShell(Select-String -Path \"C:\\\\Users\\\\fines\\\\Documents\\\\2026 Repository\\\\Our-Weather\\\\logs_extracted\\\\build\\\\3_Show available Xcode versions.txt\" -Pattern \".\" | Select-Object -First 30 | ForEach-Object { $_.Line })",
+      "PowerShell(Select-String -Path \"C:\\\\Users\\\\fines\\\\Documents\\\\2026 Repository\\\\Our-Weather\\\\logs_extracted\\\\build\\\\6_Build.txt\" -Pattern \"Swift version|swift-driver|Apple Swift\" | Select-Object -First 5 | ForEach-Object { $_.Line })",
+      "PowerShell(Select-String -Path \"C:\\\\Users\\\\fines\\\\Documents\\\\2026 Repository\\\\Our-Weather\\\\logs_extracted\\\\build\\\\6_Build.txt\" -Pattern \"CompileSwift|swiftc|SWIFT_VERSION|Swift version\" | Select-Object -First 10 | ForEach-Object { $_.Line })"
     ]
   }
 }

@@ -11,14 +11,14 @@ struct WeatherProvider: TimelineProvider {
         .placeholder
     }
 
-    func getSnapshot(in context: Context, completion: @escaping (WeatherEntry) -> Void) {
+    func getSnapshot(in context: Context, completion: @escaping @Sendable (WeatherEntry) -> Void) {
         Task { [completion] in
             let entry = await fetchEntry()
             completion(entry)
         }
     }
 
-    func getTimeline(in context: Context, completion: @escaping (Timeline<WeatherEntry>) -> Void) {
+    func getTimeline(in context: Context, completion: @escaping @Sendable (Timeline<WeatherEntry>) -> Void) {
         Task { [completion] in
             let entry = await fetchEntry()
             let nextUpdate = Date.now.addingTimeInterval(30 * 60)
