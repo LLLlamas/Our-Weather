@@ -23,7 +23,7 @@ Flat, small, single-sitting comprehension. `[shipped]` = exists in repo. `[plann
 Our-Weather/
 ├── project.yml                    # XcodeGen spec — source of truth for project structure  [shipped]
 ├── .gitignore                     # blocks secrets + generated XcodeGen/Xcode artifacts    [shipped]
-├── CLAUDE.md                      # this file                                              [shipped]
+├── AGENTS.md                      # this file                                              [shipped]
 ├── Sources/
 │   ├── App/
 │   │   ├── OurWeatherApp.swift    # @main entry point                                      [shipped]
@@ -246,7 +246,7 @@ If the CI-only inner loop becomes a productivity bottleneck, the natural escalat
 
 ## Documentation hygiene
 
-**CLAUDE.md is a living document and must be kept in sync with reality.** When making changes that affect any of the following, update CLAUDE.md in the same change set — not as a follow-up:
+**AGENTS.md is a living document and must be kept in sync with reality.** When making changes that affect any of the following, update AGENTS.md in the same change set — not as a follow-up:
 
 - File or folder structure (add/remove/move/rename) → update the architecture diagram and shipped/planned markers
 - Stack choices, dependencies, deployment target → update the Stack section
@@ -254,7 +254,7 @@ If the CI-only inner loop becomes a productivity bottleneck, the natural escalat
 - CI/CD workflow steps, secrets, or destinations → update CI/CD + Apple Developer setup
 - A "planned" item that ships → flip its marker to `[shipped]` and refresh any prose that referenced it as future work
 
-If a change makes a section of CLAUDE.md inaccurate, fix the section. If the section is no longer needed, delete it. The cost of an out-of-date doc is much higher than the cost of editing it.
+If a change makes a section of AGENTS.md inaccurate, fix the section. If the section is no longer needed, delete it. The cost of an out-of-date doc is much higher than the cost of editing it.
 
 ## Current status & next steps
 
