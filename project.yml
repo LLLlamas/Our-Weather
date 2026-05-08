@@ -74,9 +74,7 @@ targets:
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: com.ourweather.app.WeatherWidget
-        GENERATE_INFOPLIST_FILE: YES
-        INFOPLIST_KEY_CFBundleDisplayName: Weather
-        INFOPLIST_KEY_NSLocationWhenInUseUsageDescription: "Used to show weather for your current location on the home and lock screens."
+        INFOPLIST_FILE: Sources/Widget/Info.plist
         MARKETING_VERSION: "0.1.0"
         CURRENT_PROJECT_VERSION: 1
         SKIP_INSTALL: YES
