@@ -1,10 +1,19 @@
 import SwiftUI
 
 extension View {
-    /// Subtle dark halo around text to improve legibility on bright gradient or
-    /// material backgrounds. Single soft shadow at no offset reads as a very thin
-    /// edge outline rather than a drop shadow. Apply at the Text/Label level.
+    /// Solid dark silver/chrome outline around text for legibility on any background.
+    /// Eight 1pt offset shadows at radius 0 fill every edge pixel with no blur bleed.
+    /// Apply at the Text/Label level.
     func legibleText() -> some View {
-        self.shadow(color: .black.opacity(0.45), radius: 1.0, x: 0, y: 0)
+        let c = Color(red: 0.22, green: 0.22, blue: 0.28).opacity(0.90)
+        return self
+            .shadow(color: c, radius: 0, x: 1,  y: 0)
+            .shadow(color: c, radius: 0, x: -1, y: 0)
+            .shadow(color: c, radius: 0, x: 0,  y: 1)
+            .shadow(color: c, radius: 0, x: 0,  y: -1)
+            .shadow(color: c, radius: 0, x: 1,  y: 1)
+            .shadow(color: c, radius: 0, x: -1, y: -1)
+            .shadow(color: c, radius: 0, x: 1,  y: -1)
+            .shadow(color: c, radius: 0, x: -1, y: 1)
     }
 }
