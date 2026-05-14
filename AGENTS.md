@@ -260,6 +260,7 @@ If a change makes a section of AGENTS.md inaccurate, fix the section. If the sec
 
 What's working today:
 - Project compiles + tests pass via `build.yml` on GitHub Actions; signed Release uploads to TestFlight via `release.yml`
+- **Official app icon** - `AppIcon.appiconset/Icon-1024.png` contains the final 1024x1024 RGB artwork used by Xcode to generate all iOS icon sizes
 - **Multi-location** — paged TabView swipes between saved locations iOS-Weather-style; `LocationStore` persists the list to `UserDefaults` and remembers the selected location across launches
 - **Search** — list button (top-right) opens `LocationsSheet`; type to search via Open-Meteo's free geocoding API; tap a result to add + jump to it; swipe to delete pinned locations (Current Location can't be deleted)
 - **Device location** — `LocationService` (CoreLocation `liveUpdates` + `CLGeocoder` reverse geocoding) inserts a "Current Location" entry at top on first successful resolve and auto-selects it
@@ -276,4 +277,3 @@ Remaining pieces:
 2. **App Group for widget data** — currently the widget reads `CLLocationManager.location` cached by the system, which works but isn't synced to the user's selected saved location in the app. App Group + shared UserDefaults would let the widget show whichever location the user picked in `LocationStore`. Adds portal capability work + match cert regeneration.
 3. *(stretch)* Response cache (~10 min) so re-opening the app doesn't refetch immediately
 4. *(stretch)* WeatherKit migration (better data; needs entitlement enabled on the App ID)
-5. *(stretch)* Replace placeholder app icon with real artwork
