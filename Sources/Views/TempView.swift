@@ -12,6 +12,24 @@ enum Temperature {
     }
 }
 
+/// Pure wind-speed conversion helpers — kept out of any `View` for the same reason as Temperature.
+enum WindSpeed {
+    static func mph(fromKmh kmh: Double) -> Int {
+        Int((kmh * 0.621371).rounded())
+    }
+}
+
+/// Single source of truth for wind speed display. Always renders both km/h and mph.
+struct WindSpeedView: View {
+    let kmh: Double
+
+    var body: some View {
+        let mph = WindSpeed.mph(fromKmh: kmh)
+        Text("\(Int(kmh.rounded())) km/h / \(mph) mph")
+            .legibleText()
+    }
+}
+
 /// Single source of truth for temperature display.
 /// Always renders both Fahrenheit and Celsius — the product rule.
 struct TempView: View {

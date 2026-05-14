@@ -29,7 +29,7 @@ Our-Weather/
 │   │   ├── OurWeatherApp.swift    # @main entry point                                      [shipped]
 │   │   └── RootView.swift         # paged TabView of WeatherPageViews + locations sheet    [shipped]
 │   ├── Views/
-│   │   ├── TempView.swift         # Dual F/C renderer + Temperature enum (pure helpers)    [shipped]
+│   │   ├── TempView.swift         # TempView/WindSpeedView renderers + Temperature/WindSpeed enums (pure helpers) [shipped]
 │   │   ├── WeatherPageView.swift  # one location's weather screen (header + sections)      [shipped]
 │   │   ├── HourlyStrip.swift      # next 24/30h, tap to toggle horizontal/vertical layout  [shipped]
 │   │   ├── DailyList.swift        # 10-day forecast: range bars, precip %, today's dot     [shipped]

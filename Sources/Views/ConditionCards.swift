@@ -35,7 +35,7 @@ struct ConditionCards: View {
                 systemImage: "wind",
                 subtitle: windDirection(current.windDirectionDegrees)
             ) {
-                Text("\(Int(current.windSpeedKmh.rounded())) km/h")
+                WindSpeedView(kmh: current.windSpeedKmh)
                     .font(.title2)
             }
 
